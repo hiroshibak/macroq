@@ -16,7 +16,7 @@ france_gdp = web.DataReader('CLVMNACSCAB1GQFR', 'fred', start_date, end_date)
 #FR: France
 
 #対数をとる
-    log_fance_gdp = np.log(france_gdp)
+log_fance_gdp = np.log(france_gdp)
 
 #HPフィルターをかけるのに使う
 import statsmodels.api as sm
