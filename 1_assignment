@@ -1,7 +1,39 @@
+
+start_date = '1995-01-01'
+end_date = '2022-01-01'
+
+
+#フランスのGDPをもってくるのにつかう
 import pandas as pd
-import numpy as np
 import pandas_datareader.data as web
-import matplotlib.pyplot as plt
-import statsmodels.api as sm
 import pandas_datareader as pdr
+
+france_gdp = web.DataReader('CLVMNACSCAB1GQFR', 'fred', start_date, end_date)
+#C: Chain linked volume measures（連鎖方式の実質値）
+#LVMNAC: National Accounts（国民経済計算）
+#SCA: Seasonally Adjusted（季節調整済み）
+#B1GQ: Gross Domestic Product (GDP)
+#FR: France
+
+#対数をとる
 import numpy as np
+log_fansce_gdp = np.log(france_gdp)
+
+#HPフィルターをかけるのに使う
+import statsmodels.api as sm
+cycle_10, trend_10 = sm.tsa.filters.hpfilter(log_france_gdp, lamb=10)
+cycle_100, trend_100 = sm.tsa.filters.hpfilter(log_france_gdp, lamb=100)
+cycle_1600, trend_1600 = sm.tsa.filters.hpfilter(log_france_gdp, lamb=1600)
+
+#プロットしてグラフで可視化する
+import matplotlib.pyplot as plt
+plt.figure(figsize=(12, 6))
+plt.plot(log_france_gdp, label='Log Real GDP', color='gray', alpha=0.5)
+plt.plot(trend_10, label='Trend (λ=10)', linestyle='--')
+plt.plot(trend_100, label='Trend (λ=100)', linestyle='-.')
+plt.plot(trend_1600, label='Trend (λ=1600)', linestyle='-')
+plt.title("Trend Components under Different λ (France, Log Real GDP)")
+plt.legend()
+plt.grid(True)
+plt.show()
+
