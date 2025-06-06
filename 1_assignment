@@ -7,7 +7,7 @@ end_date = '2022-01-01'
 import pandas as pd
 import pandas_datareader.data as web
 import pandas_datareader as pdr
-
+import numpy as np
 france_gdp = web.DataReader('CLVMNACSCAB1GQFR', 'fred', start_date, end_date)
 #C: Chain linked volume measures（連鎖方式の実質値）
 #LVMNAC: National Accounts（国民経済計算）
@@ -16,8 +16,7 @@ france_gdp = web.DataReader('CLVMNACSCAB1GQFR', 'fred', start_date, end_date)
 #FR: France
 
 #対数をとる
-import numpy as np
-log_fance_gdp = np.log(france_gdp)
+    log_fance_gdp = np.log(france_gdp)
 
 #HPフィルターをかけるのに使う
 import statsmodels.api as sm
