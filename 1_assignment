@@ -25,6 +25,8 @@ cycle_100, trend_100 = sm.tsa.filters.hpfilter(log_france_gdp, lamb=100)
 cycle_1600, trend_1600 = sm.tsa.filters.hpfilter(log_france_gdp, lamb=1600)
 
 #プロットしてグラフで可視化する
+
+#グラフ1
 import matplotlib.pyplot as plt
 plt.figure(figsize=(12, 6))
 plt.plot(log_france_gdp, label='Log Real GDP', color='gray', alpha=0.5)
@@ -36,3 +38,14 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
+#グラフ2
+plt.figure(figsize=(12, 6))
+plt.plot(cycle_10, label='Cycle (λ=10)', linestyle='--')
+plt.plot(cycle_100, label='Cycle (λ=100)', linestyle='-.')
+plt.plot(cycle_1600, label='Cycle (λ=1600)', linestyle='-')
+plt.title("Cyclical Components under Different λ (France, Log Real GDP)")
+plt.xlabel("Date")
+plt.ylabel("Cyclical Component (log deviation)")
+plt.legend()
+plt.grid(True)
+plt.show()
