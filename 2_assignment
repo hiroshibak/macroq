@@ -45,4 +45,11 @@ def growth_accounting(group):
 # 各国に適用
 res = df.groupby('country').apply(growth_accounting).reset_index()
 
+# 平均行の追加
+avg = res.mean(numeric_only=True)
+avg['country'] = 'Average'
+res = pd.concat([res, pd.DataFrame([avg])], ignore_index=True).round(2)
+
+print(f"Growth Accounting: {start_year}-{end_year}")
+print(res.to_string(index=False))
 
