@@ -1,0 +1,59 @@
+import pandas as pd
+import numpy as np
+
+# PWT 9.0 データ読み込み
+pwt_url = 'https://www.rug.nl/ggdc/docs/pwt90.dta'
+pwt = pd.read_stata(pwt_url)
+
+# 対象国・年を設定
+countries = [
+    'Australia','Austria','Belgium','Canada','Denmark','Finland','France','Germany',
+    'Greece','Iceland','Ireland','Italy','Japan','Netherlands','New Zealand','Norway',
+    'Portugal','Spain','Sweden','Switzerland','United Kingdom','United States'
+]
+start_year, end_year = 1990, 2019
+
+df = pwt[pwt['country'].isin(countries) & pwt['year'].between(start_year, end_year)]
+cols = ['countrycode','country','year','rgdpna','rkna','emp','labsh']
+df = df[cols].dropna()
+
+# αの算出
+df['alpha'] = 1 - df['labsh']
+
+# 成長会計関数（実質GDPベース）
+def growth_accounting_total(group):
+    group = group.sort_values('year')
+    s, e = group.iloc[0], group.iloc[-1]
+    n = e['year'] - s['year']
+    
+    gy = (e['rgdpna'] / s['rgdpna'])**(1/n) - 1  # 実質GDP成長率
+    gk = (e['rkna'] / s['rkna'])**(1/n) - 1      # 資本成長率
+    gl = (e['emp'] / s['emp'])**(1/n) - 1        # 労働成長率
+    
+    alpha_bar = (s['alpha'] + e['alpha']) / 2
+    
+    cap_contrib = alpha_bar * gk
+    lab_contrib = (1 - alpha_bar) * gl
+    tfp = gy - cap_contrib - lab_contrib
+    
+    return pd.Series({
+        'GDP Growth Rate': gy * 100,
+        'TFP Growth': tfp * 100,
+        'Capital Contribution': cap_contrib * 100,
+        'Labor Contribution': lab_contrib * 100,
+        'TFP Share': tfp / gy if gy != 0 else np.nan,
+        'Capital Share': cap_contrib / gy if gy != 0 else np.nan,
+        'Labor Share': lab_contrib / gy if gy != 0 else np.nan
+    })
+
+# 適用
+res = df.groupby('country').apply(growth_accounting_total).reset_index()
+
+# 平均行を追加
+avg = res.mean(numeric_only=True)
+avg['country'] = 'Average'
+res = pd.concat([res, pd.DataFrame([avg])], ignore_index=True).round(2)
+
+# 出力
+print(f"Growth Accounting (Total GDP): {start_year}-{end_year}")
+print(res.to_string(index=False))
