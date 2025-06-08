@@ -1,2 +1,48 @@
 import pandas as pd
 import numpy as np
+
+
+# PWT 9.0 Stata ファイルの読み込み
+pwt_url = 'https://www.rug.nl/ggdc/docs/pwt90.dta'
+pwt = pd.read_stata(pwt_url)
+
+# 分析対象国と期間をパラメタ化
+countries = [
+    'Australia','Austria','Belgium','Canada','Denmark','Finland','France','Germany',
+    'Greece','Iceland','Ireland','Italy','Japan','Netherlands','New Zealand','Norway',
+    'Portugal','Spain','Sweden','Switzerland','United Kingdom','United States'
+]
+start_year, end_year = 1990, 2019
+
+df = pwt[pwt['country'].isin(countries) & pwt['year'].between(start_year, end_year)]
+
+cols = ['countrycode','country','year','rgdpna','rkna','emp','labsh','rtfpna']
+df = df[cols].dropna()
+
+# α, 一人あたりGDP, 資本 の計算
+df['alpha'] = 1 - df['labsh']
+df['y_n'] = df['rgdpna'] / df['emp']
+df['k_n'] = df['rkna'] / df['emp']
+
+# 成長会計関数
+def growth_accounting(group):
+    group = group.sort_values('year')
+    s, e = group.iloc[0], group.iloc[-1]
+    n = e['year'] - s['year']
+    gy = (e['y_n']/s['y_n'])**(1/n) - 1
+    gk = (e['k_n']/s['k_n'])**(1/n) - 1
+    alpha_bar = (s['alpha'] + e['alpha']) / 2
+    cap = alpha_bar * gk
+    tfp = gy - cap
+    return pd.Series({
+        'Growth Rate': gy*100,
+        'TFP Growth': tfp*100,
+        'Capital Deepening': cap*100,
+        'TFP Share': tfp/gy if gy!=0 else np.nan,
+        'Capital Share': cap/gy if gy!=0 else np.nan
+    })
+
+# 各国に適用
+res = df.groupby('country').apply(growth_accounting).reset_index()
+
+
