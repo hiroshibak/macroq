@@ -56,4 +56,4 @@ res = pd.concat([res, pd.DataFrame([avg])], ignore_index=True).round(2)
 
 # 出力
 print(f"Growth Accounting (Total GDP): {start_year}-{end_year}")
-print(res.to_string(index=False))
+print(res.to_markdown(index=False))
